@@ -8,6 +8,9 @@ function App() {
   const [autor, setAutor] = useState('');
   const [posts, setPosts] = useState([]);
 
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+
   useEffect(()=>{
     async function loadPosts(){
       await firebase.firestore().collection('posts')
@@ -100,12 +103,44 @@ function App() {
     })
   }
 
+  async function excluirPost(id){
+    await firebase.firestore().collection('posts')
+    .doc(id)
+    .delete()
+    .then(()=>{
+      alert('este post foi excluido')
+    })
+  }
+
+  async function novoUsuario(){
+    await firebase.auth().createUserWithEmailAndPassword(email, senha)
+    .then((value)=>{
+      console.log(value);
+    })
+    .catch((error)=>{
+      if(error.code === 'auth/weak-password'){
+        alert('Senha muito fraca!');
+      }else if(error.code === 'auth/email-already-in-use'){
+        alert('Email já utilizado');
+      }
+    })
+  }
+
   return (
     <div className="App">
       <h1>React.Js + Firebase :)</h1><br/>
 
-    <div className='container'>
+      <div className="container">
+        <label>Email </label>
+        <input type="text" value={email} onChange={ (e)=> setEmail(e.target.value)}/> <br/>
+        <label>Senha </label>
+        <input type="password" value={senha} onChange={ (e)=> setSenha(e.target.value)}/> <br/>
 
+        <button onClick={ novoUsuario }>Cadastrar</button>
+      </div>
+
+    <div className='container'>
+    <h2>Banco de dados</h2>
     <label>Id:</label>
     <input type="text" value={idPost} onChange={ (e)=> setIdPost(e.target.value)}/>
 
@@ -125,7 +160,8 @@ function App() {
           <li key={post.id}>
             <span> ID - {post.id}</span><br/>
             <span>Titulo: {post.titulo}</span><br/>
-            <span>Autor: {post.autor}</span><br/><br/>
+            <span>Autor: {post.autor}</span><br/>
+            <button onClick={ ()=> excluirPost(post.id) }>Excluir post</button><br/><br/>
           </li>
         )
       })}
